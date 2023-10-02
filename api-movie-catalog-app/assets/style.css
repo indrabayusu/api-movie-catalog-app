@@ -1,0 +1,84 @@
+/* Google Font */
+* {
+  box-sizing: border-box;
+  scroll-behavior: smooth;
+  font-family: 'Comic Neue', cursive;
+  text-align: justify;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: #ddd;
+}
+
+header {
+  background-color: #111;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+}
+
+h1 {
+  margin: 0;
+}
+
+input[type="text"] {
+  padding: 8px;
+  border-radius: 5px;
+  border: none;
+}
+
+.movies {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 35px;
+  padding: 35px;
+  margin: 0 auto;
+  max-width: 1000px;
+}
+
+.movies img {
+  height: 300px;
+  width: 205px;
+  border-radius: 8px;
+}
+
+@media (max-width: 768px) {
+  .movies {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 40px;
+    padding: 40px;
+    margin: 0 auto;
+  }
+  
+  .movies img {
+    height: 300px;
+    width:200px;
+    border-radius: 3px;
+  }
+}
+
+@media (max-width: 425px) {
+  h1 {
+    font-size: 20px;
+    margin: 0;
+  }
+
+  .movies {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 30px;
+    padding: 30px;
+    margin: 0 auto;
+  }
+
+  .movies img {
+    height: 450px;
+    width: 325px;
+    border-radius: 3px;
+  }
+}

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Movie Catalog Application</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color:  rgb(71 85 105);
+    }
+
+    #navbar {
+      background-color: #000000;
+    }
+  </style>
+</head>
+<body class="bg-slate-600">
+  <!-- Navbar -->
+  <nav id="navbar" class="bg-black text-white p-4">
+    <div class="flex justify-between items-center">
+      <div class="flex items-center">
+        <h1 class="lg:text-2xl text-xl font-semibold lg:pl-4">Movie Catalog App</h1>
+      </div>
+      <div class="flex space-x-2 text-black">
+        <!-- Search Input -->
+        <input type="text" id="searchInput" placeholder="Search" class="py-2 px-4 border rounded-lg ml-4 lg:w-36 w-24">
+        <!-- Filter -->
+        <div class="relative">
+          <label for="genreFilter" class="hidden">Filter by Genre:</label>
+          <select id="genreFilter" class="hidden py-2 px-1 border rounded-lg lg:w-32 w-24">
+            <option value="all">All</option>
+            <option value="action">Action</option>
+            <option value="comedy">Comedy</option>
+            <option value="horror">Horror</option>
+          </select>
+        </div>
+        <!-- Sort -->
+        <div class="relative">
+          <label for="sortBy" class="hidden">Sort by:</label>
+          <select id="sortBy" class="py-2 px-1 border rounded-lg lg:w-32 w-24">
+            <option value="" disabled selected>Sort Movie</option>
+            <option value="rating">Rating</option>
+            <!-- <option value="release">Release Date</option> -->
+            <option value="popularity">Popularity</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Movie Cards -->
+  <div id="movies" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 p-4">
+    <!-- Movie cards will be dynamically added here -->
+  </div>
+
+  <!-- Modal for Movie Details -->
+  <div id="detailModal" class="fixed inset-0 overflow-y-auto hidden bg-gray-800 bg-opacity-70">
+    <div class="flex items-center justify-center min-h-screen p-4">
+      <div class="modal-dialog bg-white w-full max-w-md p-4 m-4 shadow-lg rounded-lg">
+        <h2 id="modalTitle" class="text-2xl font-semibold mb-4"></h2>
+        <img id="modalImage" src="" alt="" class="mx-auto mb-4">
+        <p id="modalReleaseDate" class="mb-2"></p>
+        <p id="modalOverview" class="mb-2"></p>
+        <p id="modalRating" class="mb-4"></p>
+        <button onclick="closeModal()" class="block mx-auto bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Your API key
+    const apiKey = 'YOUR_API_KEY';
+  
+    const moviesContainer = document.getElementById('movies');
+    const genreFilterSelect = document.getElementById('genreFilter');
+    const sortBySelect = document.getElementById('sortBy');
+    const searchInputInput = document.getElementById('searchInput');
+    const detailModal = document.getElementById('detailModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalImage = document.getElementById('modalImage');
+    const modalReleaseDate = document.getElementById('modalReleaseDate');
+    const modalOverview = document.getElementById('modalOverview');
+    const modalRating = document.getElementById('modalRating');
+  
+    function fetchLatestMovies() {
+      fetch(`https://api.themoviedb.org/3/movie/top_rated?api_key=${apiKey}&language=en-US&page=1`)
+        .then((response) => response.json())
+        .then((data) => {
+          const latestMovies = data.results.slice(0, 10); // Ambil 10 film terbaru
+          latestMovies.forEach((movie) => {
+            const moviePoster = document.createElement('div');
+            moviePoster.classList.add('latest-movie-poster');
+            moviePoster.innerHTML = `
+              <img src="https://image.tmdb.org/t/p/w185${movie.poster_path}" alt="${movie.title}">
+              <p class="text-white">${movie.title}</p>
+            `;
+            latestMoviesContainer.appendChild(moviePoster);
+          });
+        })
+        .catch((error) => console.error(error));
+    }
+    
+    fetchLatestMovies();
+    
+    function fetchMovies() {
+      const today = new Date().toISOString().slice(0, 10);
+
+      const threeMonthsFromToday = new Date();
+      threeMonthsFromToday.setMonth(threeMonthsFromToday.getMonth() + 1);
+      const formattedThreeMonthsFromToday = threeMonthsFromToday.toISOString().slice(0, 10);
+
+      fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&primary_release_date.gte=${today}&primary_release_date.lte=${formattedThreeMonthsFromToday}&sort_by=release_date.desc`)
+        .then((response) => response.json())
+        .then((data) => {
+          moviesContainer.innerHTML = '';
+          data.results.forEach((movie) => {
+            const movieCard = document.createElement('div');
+            movieCard.classList.add('movie-card', 'bg-white', 'border', 'border-gray-300', 'rounded-lg', 'p-4', 'shadow-md');
+            movieCard.innerHTML = `
+              <div class="h-20 flex items-center">
+                <h2 class="text-center mx-auto px-2">${movie.title}</h2>
+              </div>
+              <img src="https://image.tmdb.org/t/p/w185${movie.poster_path}" alt="${movie.title}" class="mx-auto mb-4 w-full">
+              <button onclick="showMovieDetails(${movie.id})" class="block mx-auto py-1 px-4 mt-2 mb-2 bg-blue-500 hover:bg-blue-700 text-white rounded">
+                Details
+              </button>
+            `;
+            moviesContainer.appendChild(movieCard);
+          });
+        })
+        .catch((error) => console.error(error));
+    }
+  
+    function showMovieDetails(movieId) {
+      fetch(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${apiKey}&language=en-US`)
+        .then((response) => response.json())
+        .then((movie) => {
+          modalTitle.textContent = movie.title;
+          modalImage.src = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
+        
+          const releaseDate = new Date(movie.release_date);
+        
+          const monthNames = [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+          ];
+        
+          const day = releaseDate.getDate();
+          const monthIndex = releaseDate.getMonth();
+          const year = releaseDate.getFullYear();
+          const formattedReleaseDate = `${day} ${monthNames[monthIndex]} ${year}`;
+          const ratingWithTwoDecimal = `Rating: ${movie.vote_average.toFixed(1)} / 10 ⭐️`;
+        
+          modalReleaseDate.textContent = `Release Date: ${formattedReleaseDate}`;
+          modalOverview.textContent = `Overview: ${movie.overview}`;
+          modalRating.textContent = ratingWithTwoDecimal;
+        
+          detailModal.classList.remove('hidden');
+        })
+        .catch((error) => console.error(error));
+    }
+
+    function closeModal() {
+      detailModal.classList.add('hidden');
+    }
+  
+    genreFilterSelect.addEventListener('change', function () {
+      const selectedGenre = genreFilterSelect.value;
+      fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&with_genres=${selectedGenre}`)
+        .then((response) => response.json())
+        .then((data) => {
+          moviesContainer.innerHTML = '';
+          data.results.forEach((movie) => {
+            const movieCard = document.createElement('div');
+            movieCard.classList.add('movie-card', 'bg-white', 'border', 'border-gray-300', 'rounded-lg', 'p-4', 'shadow-md');
+            movieCard.innerHTML = `
+              <div class="h-20 flex items-center">
+                <h2 class="text-center mx-auto px-2">${movie.title}</h2>
+              </div>
+              <img src="https://image.tmdb.org/t/p/w185${movie.poster_path}" alt="${movie.title}" class="mx-auto mb-4 w-full">
+              <button onclick="showMovieDetails(${movie.id})" class="block mx-auto py-1 px-4 mt-2 mb-2 bg-blue-500 hover:bg-blue-700 text-white rounded">
+                Details
+              </button>
+            `;
+            moviesContainer.appendChild(movieCard);
+          });
+        })
+        .catch((error) => console.error(error));
+    });
+  
+    sortBySelect.addEventListener('change', function () {
+      const selectedSortOption = sortBySelect.value;
+      let sortParameter = '';
+
+      if (selectedSortOption === 'rating') {
+        sortParameter = 'vote_average.desc';
+      } else if (selectedSortOption === 'release') {
+        sortParameter = 'release_date.desc';
+      } else if (selectedSortOption === 'popularity') {
+        sortParameter = 'popularity.desc';
+      } else {
+        sortParameter = 'release_date.desc';
+      }
+    
+      fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&sort_by=${sortParameter}`)
+        .then((response) => response.json())
+        .then((data) => {
+          moviesContainer.innerHTML = '';
+          data.results.forEach((movie) => {
+            const movieCard = document.createElement('div');
+            movieCard.classList.add('movie-card', 'bg-white', 'border', 'border-gray-300', 'rounded-lg', 'p-4', 'shadow-md');
+            movieCard.innerHTML = `
+              <div class="h-20 flex items-center">
+                <h2 class="text-center mx-auto px-2">${movie.title}</h2>
+              </div>
+              <img src="https://image.tmdb.org/t/p/w185${movie.poster_path}" alt="${movie.title}" class="mx-auto mb-4 w-full">
+              <button onclick="showMovieDetails(${movie.id})" class="block mx-auto py-1 px-4 mt-2 mb-2 bg-blue-500 hover:bg-blue-700 text-white rounded">
+                Details
+              </button>
+            `;
+            moviesContainer.appendChild(movieCard);
+          });
+        })
+      .catch((error) => console.error(error));
+    });
+  
+    searchInputInput.addEventListener('keyup', function (event) {
+      const query = event.target.value;
+      if (query.length >= 3) {
+        fetch(`https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${query}`)
+          .then((response) => response.json())
+          .then((data) => {
+            moviesContainer.innerHTML = '';
+            data.results.forEach((movie) => {
+              const movieCard = document.createElement('div');
+              movieCard.classList.add('movie-card', 'bg-white', 'border', 'border-gray-300', 'rounded-lg', 'p-4', 'shadow-md');
+              movieCard.innerHTML = `
+                <div class="h-20 flex items-center">
+                  <h2 class="text-center mx-auto px-2">${movie.title}</h2>
+                </div>
+                <img src="https://image.tmdb.org/t/p/w185${movie.poster_path}" alt="${movie.title}" class="mx-auto mb-4 w-full">
+                <button onclick="showMovieDetails(${movie.id})" class="block mx-auto py-1 px-4 mt-2 mb-2 bg-blue-500 hover:bg-blue-700 text-white rounded">
+                  Details
+                </button>
+              `;
+              moviesContainer.appendChild(movieCard);
+            });
+          })
+          .catch((error) => console.error(error));
+      } else {
+        fetchMovies();
+      }
+    });
+
+  fetchMovies();
+  
+  </script>
+</body>
+</html>
